@@ -29,7 +29,11 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.ProgressBar;
+import android.widget.Toast;
 
+import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
@@ -54,7 +58,7 @@ public class MainActivity extends AppCompatActivity {
 
     private FirebaseDatabase mFireBaseDatabase;
     private DatabaseReference mMessagesDatabaseReference;
-
+    private ChildEventListener mChildEventListener;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -116,9 +120,43 @@ public class MainActivity extends AppCompatActivity {
                 // TODO: Send messages on click
                 FriendlyMessage friendlyMessage = new FriendlyMessage(mMessageEditText.getText().toString(), ANONYMOUS, null);
                 // Clear input box
+                mMessagesDatabaseReference.push().setValue(friendlyMessage);
                 mMessageEditText.setText("");
+
             }
         });
+
+        mChildEventListener = new ChildEventListener() {
+            @Override
+            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                FriendlyMessage newMessage = dataSnapshot.getValue(FriendlyMessage.class);
+                mMessageAdapter.add(newMessage);
+
+                Toast.makeText(getApplicationContext(), newMessage.getText(), Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+
+            }
+
+            @Override
+            public void onChildRemoved(DataSnapshot dataSnapshot) {
+
+            }
+
+            @Override
+            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        };
+
+        mMessagesDatabaseReference.addChildEventListener(mChildEventListener);
     }
 
     @Override
